@@ -16,7 +16,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     
-    container: stanfordnmbl/opensim-cpp:latest
+    container: stanfordnmbl/opensim-cpp:4.3
 
     steps:
     - uses: actions/checkout@v2
