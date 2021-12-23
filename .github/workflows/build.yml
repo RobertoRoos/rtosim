@@ -3,7 +3,7 @@ name: CMake
 on:
   push:
     branches:
-      - "**"
+      - "master"
   pull_request:
     branches:
       - "**"
@@ -22,10 +22,14 @@ jobs:
     - uses: actions/checkout@v2
     
     - name: RTB Dependencies
-      run: cd ~ && git clone https://github.com/RealTimeBiomechanics/Concurrency.git && mkdir -p Concurrency/build && \
-           cd Concurrency/build && cmake .. && make -j4 && make install && \
-           cd ~ && git clone https://github.com/RealTimeBiomechanics/Filter.git && mkdir -p Filter/build && \
-           cd Filter/build && cmake .. && make -j4 && make install
+      run: git clone https://github.com/RealTimeBiomechanics/Concurrency.git ${{github.workspace}}/Concurrency && \
+           cmake -B ${{github.workspace}}/build_concurrency -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} && \
+           cmake --build ${{github.workspace}}/build_concurrency --config ${{env.BUILD_TYPE}} -- -j8 && \
+           cmake --install ${{github.workspace}}/build_concurrency && \
+           git clone https://github.com/RealTimeBiomechanics/Filter.git ${{github.workspace}}/Filter && \
+           cmake -B ${{github.workspace}}/build_filter -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} && \
+           cmake --build ${{github.workspace}}/build_filter --config ${{env.BUILD_TYPE}} -- -j8 && \
+           cmake --install ${{github.workspace}}/build_filter
 
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
