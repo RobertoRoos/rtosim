@@ -1,0 +1,41 @@
+name: CMake
+
+on:
+  push:
+    branches:
+      - "master"
+  pull_request:
+    branches:
+      - "**"
+
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: RelWithDebInfo
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    container: stanfordnmbl/opensim-cpp:4.3
+
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: RTB Dependencies
+      run: git clone https://github.com/RealTimeBiomechanics/Concurrency.git ${{github.workspace}}/Concurrency && \
+           cmake -B ${{github.workspace}}/build_concurrency -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} && \
+           cmake --build ${{github.workspace}}/build_concurrency --config ${{env.BUILD_TYPE}} -- -j8 && \
+           cmake --install ${{github.workspace}}/build_concurrency && \
+           git clone https://github.com/RealTimeBiomechanics/Filter.git ${{github.workspace}}/Filter && \
+           cmake -B ${{github.workspace}}/build_filter -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} && \
+           cmake --build ${{github.workspace}}/build_filter --config ${{env.BUILD_TYPE}} -- -j8 && \
+           cmake --install ${{github.workspace}}/build_filter
+
+    - name: Configure CMake
+      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
+      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
+      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DOPENSIM_INSTALL_DIR=/opensim_install -DCMAKE_CXX_STANDARD=17
+
+    - name: Build
+      # Build your program with the given configuration
+      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} -- -j8
